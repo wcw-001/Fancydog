@@ -1,0 +1,23 @@
+spring:
+  application:
+    name:user-center
+  #DataSource Config
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/wcw01
+    username: root
+    password: wcw231407
+
+server:
+  port: 8081
+  servlet:
+    context-path: /api
+# ???????mybatis-plus:
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+  global-config:
+    db-config:
+      logic-delete-field: isDelete # ????????????(since 3.3.0,????????????2)
+      logic-delete-value: 1 # ??????(??? 1)
+      logic-not-delete-value: 0 # ??????(??? 0)
