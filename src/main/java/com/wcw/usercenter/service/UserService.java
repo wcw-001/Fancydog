@@ -2,6 +2,7 @@ package com.wcw.usercenter.service;
 
 import com.wcw.usercenter.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.wcw.usercenter.model.domain.request.UserUpdatePasswordRequest;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -34,10 +35,19 @@ public interface UserService extends IService<User> {
     User doLogin(String userAccount, String userPassword, HttpServletRequest request);
 
     /**
+     * 修改密码
+     * @param updatePasswordRequest
+     * @param request
+     * @return
+     */
+    boolean updateUserPassword(UserUpdatePasswordRequest updatePasswordRequest, HttpServletRequest request);
+
+    /**
      * 用户脱敏
      * @param originUser
      * @return
      */
     User getSafetyUser(User originUser);
     int userLogout(HttpServletRequest request);
+    User getLoginUser(HttpServletRequest request);
 }

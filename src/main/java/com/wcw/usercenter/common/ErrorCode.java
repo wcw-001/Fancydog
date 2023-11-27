@@ -14,8 +14,8 @@ public enum ErrorCode {
     NULL_ERROR(40001,"请求数据为空",""),
     NOT_LOGIN(40101,"未登入",""),
     NO_AUTH(40100,"无权限",""),
-    SYSTEM_ERROR(50000,"系统内部异常","");
-
+    SYSTEM_ERROR(50000,"系统内部异常",""),
+    OPERATION_ERROR(50001, "操作失败", "操作失败");
     private final int code;
     private final String message;
     private final String description;

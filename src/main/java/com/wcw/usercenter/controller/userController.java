@@ -5,13 +5,12 @@ import com.wcw.usercenter.common.BaseResponse;
 import com.wcw.usercenter.common.ErrorCode;
 import com.wcw.usercenter.common.ResultUtils;
 import com.wcw.usercenter.exception.BusinessException;
+import com.wcw.usercenter.exception.ThrowUtils;
 import com.wcw.usercenter.model.domain.User;
-import com.wcw.usercenter.model.domain.request.UserDeleteRequest;
-import com.wcw.usercenter.model.domain.request.UserLoginRequest;
-import com.wcw.usercenter.model.domain.request.UserRegisterRequest;
+import com.wcw.usercenter.model.domain.request.*;
 import com.wcw.usercenter.service.UserService;
-import org.apache.catalina.realm.JNDIRealm;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 /**
  * 用户接口
@@ -37,6 +36,11 @@ public class userController {
     @Resource
     private UserService userService;
 
+    /**
+     * 用户注册
+     * @param userRegisterRequest
+     * @return
+     */
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
@@ -58,6 +62,13 @@ public class userController {
 
     }
 
+    /**
+     * 用户登入
+     * @param userLoginRequest
+     * @param request
+     * @return
+     */
+
     @PostMapping("/login")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
@@ -72,6 +83,12 @@ public class userController {
         User user = userService.doLogin(userAccount, userPassword, request);
         return ResultUtils.success(user);
     }
+
+    /**
+     * 注销
+     * @param request
+     * @return
+     */
     @PostMapping("/logout")
     public BaseResponse<Integer> userLogout(HttpServletRequest request) {
         if (request == null) {
@@ -80,6 +97,13 @@ public class userController {
         int result = userService.userLogout(request);
         return ResultUtils.success(result);
     }
+
+    /**
+     *
+     * @param request
+     * @return
+     */
+
     @GetMapping("/current")
     public BaseResponse<User> getCurrentUser(HttpServletRequest request){
        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
@@ -98,7 +122,6 @@ public class userController {
         if(!isAdmin(request)){
             return new BaseResponse(ErrorCode.NO_AUTH);
         }
-
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(username)) {
             queryWrapper.like("username", username);
@@ -122,6 +145,41 @@ public class userController {
 
         }
     }
+    @PostMapping("/update/my")
+    public BaseResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
+                                              HttpServletRequest request) {
+        if (userUpdateMyRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        User user = new User();
+        BeanUtils.copyProperties(userUpdateMyRequest, user);
+        user.setId(loginUser.getId());
+        boolean result = userService.updateById(user);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(true);
+    }
+
+    /**
+     *用户自己更新自己的项目
+     * @param updatePasswordRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/update/password")
+    public BaseResponse<Boolean> updateUserPassword(@RequestBody UserUpdatePasswordRequest updatePasswordRequest,
+                                                    HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            throw new BusinessException(ErrorCode.NO_AUTH, "无权限");
+        }
+        boolean updateUserPassword = userService.updateUserPassword(updatePasswordRequest, request);
+        if (updateUserPassword) {
+            return ResultUtils.success(true);
+        } else {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
+        }
+    }
+
 
     /**
      * 是否为管理员

@@ -4,11 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wcw.usercenter.common.ErrorCode;
 import com.wcw.usercenter.exception.BusinessException;
+import com.wcw.usercenter.exception.ThrowUtils;
 import com.wcw.usercenter.mapper.UserMapper;
 import com.wcw.usercenter.model.domain.User;
+import com.wcw.usercenter.model.domain.request.UserUpdatePasswordRequest;
 import com.wcw.usercenter.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -133,6 +136,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return safetyUser;
     }
 
+    @Override
+    public boolean updateUserPassword(UserUpdatePasswordRequest updatePasswordRequest, HttpServletRequest request) {
+        if (updatePasswordRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = getLoginUser(request);
+        Long userId = loginUser.getId();
+        if (userId < 0 || userId == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR, "不存在该用户");
+        }
+        User user = new User();
+        BeanUtils.copyProperties(updatePasswordRequest, user);
+        user.setId(loginUser.getId());
+
+        // 使用 MD5 加密新密码
+        String encryptedPassword = DigestUtils.md5DigestAsHex((SALT + updatePasswordRequest.getNewPassword()).getBytes());
+        user.setUserPassword(encryptedPassword);
+        if (encryptedPassword.equals(updatePasswordRequest.getUserPassword())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "修改密码不能相同");
+        }
+        boolean result = updateById(user);
+        ThrowUtils.throwIf(!result, ErrorCode.PARAMS_ERROR);
+        return true;
+    }
+
     /**
      * 用户脱敏
      * @param originUser
@@ -157,6 +185,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             safetyUser.setUserRole(originUser.getUserRole());
             return safetyUser;
         }
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        // 先判断是否已登录
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) userObj;
+        if (currentUser == null || currentUser.getId() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "未登录");
+        }
+        // 从数据库查询（追求性能的话可以注释，直接走缓存）
+        long userId = currentUser.getId();
+        currentUser = this.getById(userId);
+        if (currentUser == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "未登录");
+        }
+        return currentUser;
+    }
 
     @Override
     public int userLogout(HttpServletRequest request) {

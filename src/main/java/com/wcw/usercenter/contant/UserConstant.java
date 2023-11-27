@@ -8,7 +8,7 @@ public interface UserConstant {
     //----权限----
     /**
      * 默认权限
-     * */
+     **/
     int DEFAULT_ROLE = 0;
     /**
      * 管理员权限
