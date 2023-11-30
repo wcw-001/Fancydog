@@ -1,7 +1,7 @@
 package com.wcw.usercenter.common;
 
 
-import org.omg.CORBA.NO_PERMISSION;
+//import org.omg.CORBA.NO_PERMISSION;
 
 /**
  * 错误码
