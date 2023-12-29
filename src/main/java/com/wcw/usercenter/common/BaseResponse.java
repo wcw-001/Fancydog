@@ -30,7 +30,6 @@ public class BaseResponse<T> implements Serializable {
         this.code = code;
         this.data = data;
         this.description = description;
-
     }
 
 

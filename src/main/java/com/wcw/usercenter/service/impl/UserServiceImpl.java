@@ -125,7 +125,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //用户不存在
         if (user == null) {
             log.info("user login failed,userAccount cannot match userPassword");
-            return null;
+            throw new BusinessException(ErrorCode.NULL_ERROR,"不存在该用户");
         }
         //用户脱敏
         User safetyUser = getSafetyUser(user);
@@ -169,7 +169,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
         public User getSafetyUser(User originUser){
             if(originUser ==null){
-                return  null;
+                throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户未登录");
             }
             User safetyUser = new User();
             safetyUser.setId(originUser.getId());
