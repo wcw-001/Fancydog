@@ -8,6 +8,10 @@ spring:
     username: root
     password: wcw231407
 
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+
 server:
   port: 8081
   servlet:
@@ -16,6 +20,7 @@ server:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       logic-delete-field: isDelete # ????????????(since 3.3.0,????????????2)

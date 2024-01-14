@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.wcw.usercenter.model.domain.request.UserUpdatePasswordRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 用户服务
@@ -50,4 +51,12 @@ public interface UserService extends IService<User> {
     User getSafetyUser(User originUser);
     int userLogout(HttpServletRequest request);
     User getLoginUser(HttpServletRequest request);
+
+    /**
+     * 根据标签搜索用户
+     *
+     * @param tagList
+     * @return
+     */
+    List<User> searchUsersByTag(List<String> tagList);
 }

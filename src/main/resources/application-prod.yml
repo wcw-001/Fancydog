@@ -3,9 +3,9 @@ spring:
   #DataSource Config
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/wcw01
-    username: root
-    password: riCXT8zM
+    url: jdbc:mysql://43.143.137.139:3306/wcw001
+    username: wcw001
+    password: wcw231407
   session:
     timeout: 86400
 server:

@@ -2,6 +2,9 @@ package com.wcw.usercenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.Gson;
+import com.google.gson.TypeAdapter;
+import com.google.gson.reflect.TypeToken;
 import com.wcw.usercenter.common.ErrorCode;
 import com.wcw.usercenter.exception.BusinessException;
 import com.wcw.usercenter.exception.ThrowUtils;
@@ -13,12 +16,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.servlet.tags.form.SelectTag;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.wcw.usercenter.contant.UserConstant.USER_LOGIN_STATE;
 
@@ -183,6 +191,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             safetyUser.setUserStatus(originUser.getUserStatus());
             safetyUser.setCreateTime(originUser.getCreateTime());
             safetyUser.setUserRole(originUser.getUserRole());
+            safetyUser.setTags(originUser.getTags());
             return safetyUser;
         }
     @Override
@@ -206,6 +215,65 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public int userLogout(HttpServletRequest request) {
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         return 1;
+    }
+
+    /**
+     * 根据标签搜索用户
+     *
+     * @param tagList 用户要拥有的标签
+     * @return
+     */
+    /*@Deprecated
+    @Override
+    public List<User> searchUsersByTag(List<String> tagList) {
+        *//**
+         * 1.直接用sql查询
+         *//*
+        if (CollectionUtils.isEmpty(tagList)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+       QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        //拼接 and 查询
+        //用queryWrapper来限制查询条件
+        for (String tagName : tagList) {
+            queryWrapper = queryWrapper.like("tags",tagName);
+        }
+        List<User> userList = userMapper.selectList(queryWrapper);
+        return userList.stream().map(this::getSafetyUser ).collect(Collectors.toList());
+    }*/
+    /**
+     * 根据标签搜索用户(内存过滤)
+     *
+     * @param tagNameList 用户要拥有的标签
+     * @return
+     */
+    @Override
+    public List<User> searchUsersByTag(List<String> tagNameList){
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        /**
+         * 2.在内存中查询
+         */
+        //1.先查询所有用户
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        List<User> userList = userMapper.selectList(queryWrapper);
+        Gson gson = new Gson();
+        //2.在内存中判断是否包含要求的标签
+        return userList.stream().filter(user -> {
+            String tagsStr = user.getTags();
+            if (StringUtils.isBlank(tagsStr)) {
+                return false;
+            }
+            Set<String> temTagNameSet = gson.fromJson(tagsStr, new TypeToken<Set<String>>() {
+            }.getType());
+            for (String tagName : tagNameList) {
+                if (!temTagNameSet.contains(tagName)) {
+                    return false;
+                }
+            }
+            return true;
+        }).map(this::getSafetyUser).collect(Collectors.toList());
     }
 
 

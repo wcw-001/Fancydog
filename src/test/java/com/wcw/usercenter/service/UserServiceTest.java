@@ -2,11 +2,14 @@ package com.wcw.usercenter.service;
 
 import com.wcw.usercenter.model.domain.User;
 import com.wcw.usercenter.service.impl.UserServiceImpl;
+import org.assertj.core.internal.Objects;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 用户测试
@@ -62,6 +65,13 @@ public class UserServiceTest {
         result = userService.userRegister(userAccount, userPassword,checkPassWord,userCode);
         Assertions.assertEquals(-1,result);
 
+
+    }
+    @Test
+    public void testSearchUsersByTags(){
+        List<String> tagNameList = Arrays.asList("java","python");
+        List<User> userList = userService.searchUsersByTag(tagNameList);
+        Assertions.assertNotNull(userList);
 
     }
 }
